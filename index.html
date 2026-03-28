@@ -45,20 +45,23 @@ body {
   margin: 8px 0;
 }
 
-/* バー */
+/* バーの背景（溝）を少し見やすく */
 .bar-bg {
   width: 100%;
-  background: #ddd;
+  background: #eee; /* 薄いグレー */
   border-radius: 4px;
   margin-top: 5px;
+  height: 8px; /* 高さを固定 */
+  overflow: hidden; /* はみ出し防止 */
 }
 
 .bar {
-  height: 8px;
+  height: 100%; /* 親の高さに合わせる */
   width: 0%;
-  border-radius: 4px;
-  transition: width 0.5s ease;
+  background: #ccc; /* デフォルト色 */
+  transition: width 0.5s ease, background 0.5s ease;
 }
+
 
 /* ミニ */
 .mini {

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>すとサーバー Status</title>
+
 <style>
 body {
   font-family: Arial, sans-serif;
@@ -68,12 +69,32 @@ body {
   text-decoration: none;
   border-radius: 8px;
 }
+
+/* ヘッダーミニ表示 */
+.mini {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
 </style>
 </head>
+
 <body>
+
+<!-- ミニステータス -->
+<div class="mini">
+  MC: <span id="miniMC">...</span> |
+  Web: <span id="miniWeb">...</span>
+</div>
 
 <div class="container">
 
+<!-- 全体 -->
 <div class="card">
   <div class="title">すとサーバー ネットワーク</div>
   <div id="statusText" class="status-box online">
@@ -81,6 +102,7 @@ body {
   </div>
 </div>
 
+<!-- マイクラ -->
 <div class="card">
   <div class="title">すとサーバー（Sutoserver.xgames.jp）</div>
 
@@ -100,53 +122,94 @@ body {
   </div>
 
   <div class="bar"></div>
+</div>
 
+<!-- Webサイト -->
+<div class="card">
+  <div class="title">Webサイト（sutoserver.net）</div>
+
+  <div class="row">
+    <span>状態</span>
+    <span id="webStatus">チェック中...</span>
+  </div>
+
+  <div class="row">
+    <span>応答時間</span>
+    <span id="webPing">-- ms</span>
+  </div>
 </div>
 
 </div>
 
 <script>
-const IP = "Sutoserver.xgames.jp";
+const MC_IP = "Sutoserver.xgames.jp";
+const MC_API = `https://api.mcsrvstat.us/2/${MC_IP}`;
+const WEB_URL = "https://sutoserver.net";
 
-// 無料のマイクラステータスAPI
-const url = `https://api.mcsrvstat.us/2/${IP}`;
-
-async function updateStatus() {
+// マイクラチェック
+async function updateMC() {
   try {
-    const res = await fetch(url);
+    const res = await fetch(MC_API);
     const data = await res.json();
 
     const statusBox = document.getElementById("statusText");
     const onlineText = document.getElementById("onlineText");
     const players = document.getElementById("players");
     const ping = document.getElementById("ping");
+    const mini = document.getElementById("miniMC");
 
     if (data.online) {
       statusBox.textContent = "✅ サーバー稼働中！";
       statusBox.className = "status-box online";
       onlineText.textContent = "オンライン";
 
-      const now = data.players.online;
-      const max = data.players.max;
-      players.textContent = `${now} / ${max}`;
-
+      players.textContent = `${data.players.online} / ${data.players.max}`;
       ping.textContent = data.debug.ping + " ms";
+
+      mini.textContent = "🟢";
     } else {
       statusBox.textContent = "❌ サーバー停止中！";
       statusBox.className = "status-box offline";
       onlineText.textContent = "オフライン";
+
       players.textContent = "-- / --";
       ping.textContent = "-- ms";
+
+      mini.textContent = "🔴";
     }
-  } catch (e) {
-    document.getElementById("statusText").textContent =
-      "⚠️ 取得エラー";
+  } catch {
+    document.getElementById("statusText").textContent = "⚠️ 取得エラー";
   }
 }
 
-// 10秒ごとに自動更新（リアルタイム）
-updateStatus();
-setInterval(updateStatus, 10000);
+// Webチェック
+async function checkWeb() {
+  const start = Date.now();
+
+  try {
+    await fetch(WEB_URL, { mode: "no-cors" });
+    const time = Date.now() - start;
+
+    document.getElementById("webStatus").textContent = "オンライン";
+    document.getElementById("webPing").textContent = time + " ms";
+    document.getElementById("miniWeb").textContent = "🟢";
+
+  } catch {
+    document.getElementById("webStatus").textContent = "オフライン";
+    document.getElementById("webPing").textContent = "-- ms";
+    document.getElementById("miniWeb").textContent = "🔴";
+  }
+}
+
+// 両方チェック
+function updateAll() {
+  updateMC();
+  checkWeb();
+}
+
+// 初回＆10秒ごと更新
+updateAll();
+setInterval(updateAll, 10000);
 </script>
 
 </body>

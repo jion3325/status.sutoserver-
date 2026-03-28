@@ -138,7 +138,9 @@ async function checkMC(ip, prefix, miniId) {
     if (!res.ok) throw new Error("Network response was not ok");
     const data = await res.json();
 
+    
     if (data.online) {
+      // ★ここから中身を書き換えます★
       const now = data.players?.online ?? 0;
       const max = data.players?.max || 1;
       const pingValue = data.debug?.ping ?? "--";
@@ -149,10 +151,13 @@ async function checkMC(ip, prefix, miniId) {
 
       const percent = (now / max) * 100;
       bar.style.width = percent + "%";
+      
+      // もしバーが消えるなら、ここを backgroundColor に明示的に指定
       const hue = Math.max(0, 120 - (percent * 1.2));
-      bar.style.background = `hsl(${hue}, 70%, 50%)`;
+      bar.style.backgroundColor = `hsl(${hue}, 70%, 50%)`; 
 
       miniEl.textContent = "🟢";
+    
       return true;
     } else {
       statusEl.textContent = "オフライン";

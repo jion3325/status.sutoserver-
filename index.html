@@ -135,75 +135,56 @@ const WEB_URL = "https://sutoserver.com";
 // キャッシュ（消え防止）
 let cache = {};
 
-// マイクラ
+// マイクラサーバーのチェック関数（修正版）
 async function checkMC(ip, prefix, miniId) {
+  const bar = document.getElementById(prefix + "Bar");
+  const pingEl = document.getElementById(prefix + "Ping");
+  const statusEl = document.getElementById(prefix + "Status");
+  const playersEl = document.getElementById(prefix + "Players");
+  const miniEl = document.getElementById(miniId);
+
   try {
     const res = await fetch(`https://api.mcsrvstat.us/2/${ip}`);
     const data = await res.json();
 
-    const bar = document.getElementById(prefix + "Bar");
-    const pingEl = document.getElementById(prefix + "Ping");
-
     if (data.online) {
-      const now = data.players?.online;
-      const max = data.players?.max;
-      const pingValue = data.debug?.ping;
+      // プレイヤー数（データがない場合は0、最大は1以上にする）
+      const now = data.players?.online ?? 0;
+      const max = data.players?.max || 1; 
+      // Ping値（デバッグ情報から取得、なければ --）
+      const pingValue = data.debug?.ping ?? "--";
 
-      if (now !== undefined && max !== undefined) {
-        cache[prefix] = { now, max };
-      }
+      // テキスト情報の更新
+      statusEl.textContent = "オンライン";
+      playersEl.textContent = `${now} / ${max}`;
+      pingEl.textContent = pingValue + (pingValue !== "--" ? " ms" : "");
 
-      const c = cache[prefix] || { now: 0, max: 0 };
-
-      document.getElementById(prefix + "Status").textContent = "オンライン";
-      document.getElementById(prefix + "Players").textContent = `${c.now} / ${c.max}`;
-
-      // Ping保持
-      if (pingValue !== undefined) {
-        pingEl.textContent = pingValue + " ms";
-      }
-
-      const percent = c.max > 0 ? (c.now / c.max) * 100 : 0;
+      // 【重要】バーの計算と表示
+      const percent = (now / max) * 100;
       bar.style.width = percent + "%";
 
-      // 色（滑らか変化）
-      const hue = 120 - (percent * 1.2);
+      // 色の変化（120:緑 → 0:赤）
+      const hue = Math.max(0, 120 - (percent * 1.2));
       bar.style.background = `hsl(${hue}, 70%, 50%)`;
 
-      document.getElementById(miniId).textContent = "🟢";
+      miniEl.textContent = "🟢";
       return true;
 
     } else {
-      document.getElementById(prefix + "Status").textContent = "取得失敗（保持中）";
-      document.getElementById(miniId).textContent = "🟡";
+      // オフラインまたは取得失敗時
+      statusEl.textContent = "オフライン";
+      miniEl.textContent = "🔴";
+      bar.style.width = "0%"; // バーをリセット
       return false;
     }
 
-  } catch {
-    document.getElementById(prefix + "Status").textContent = "エラー（保持中）";
-    document.getElementById(miniId).textContent = "🟡";
+  } catch (e) {
+    statusEl.textContent = "接続エラー";
+    miniEl.textContent = "🟡";
     return false;
   }
 }
 
-// Web
-async function checkWeb() {
-  const start = Date.now();
-  try {
-    await fetch(WEB_URL, { mode: "no-cors" });
-    const time = Date.now() - start;
-
-    document.getElementById("webStatus").textContent = "オンライン";
-    document.getElementById("webPing").textContent = time + " ms";
-    document.getElementById("miniWeb").textContent = "🟢";
-    return true;
-
-  } catch {
-    document.getElementById("webStatus").textContent = "取得失敗（保持中）";
-    document.getElementById("miniWeb").textContent = "🟡";
-    return false;
-  }
-}
 
 // 全体
 async function updateAll() {

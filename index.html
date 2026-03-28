@@ -143,50 +143,49 @@ async function checkMC(ip, prefix, miniId) {
   const playersEl = document.getElementById(prefix + "Players");
   const miniEl = document.getElementById(miniId);
 
+  // --- 自前Ping計測の開始 ---
+  const startTime = Date.now(); 
+
   try {
+    // APIを叩く（ここで時間がかかる分を計測）
     const res = await fetch(`https://api.mcsrvstat.us/2/${ip}`);
-    if (!res.ok) throw new Error("API Error");
     const data = await res.json();
+    
+    // APIが返ってきた時間との差分を計算
+    const selfPing = Date.now() - startTime;
 
     if (data.online) {
-      // 数値化の強制
       const now = Number(data.players?.online) || 0;
       const max = Number(data.players?.max) || 1;
-      
-      // Pingの取得ロジック（true対策）
-      let pingValue = data.ping; 
-      if (typeof pingValue !== 'number' && data.debug?.ping && typeof data.debug.ping === 'number') {
-        pingValue = data.debug.ping;
-      }
-      const displayPing = (typeof pingValue === 'number') ? pingValue : "--";
 
-      // テキスト表示
+      // APIから数字が来ればそれを使う、来なければ自前で測った数字(selfPing)を使う
+      let displayPing = (typeof data.debug?.ping === 'number') ? data.debug.ping : selfPing;
+
       statusEl.textContent = "オンライン";
-      statusEl.style.color = "#1a7f37";
       playersEl.textContent = `${now} / ${max}`;
-      pingEl.textContent = `${displayPing} ms`;
+      
+      // ここで確実に「〇〇 ms」と表示させます
+      pingEl.textContent = displayPing + " ms";
 
-      // バーの更新
-      const percent = Math.min(100, Math.max(0, (now / max) * 100));
+      const percent = Math.min(100, (now / max) * 100);
       bar.style.width = percent + "%";
-      const hue = Math.max(0, 120 - (percent * 1.2)); // 混雑するほど赤く
+      const hue = Math.max(0, 120 - (percent * 1.2));
       bar.style.backgroundColor = `hsl(${hue}, 70%, 50%)`;
 
       miniEl.textContent = "🟢";
       return true;
     } else {
-      throw new Error("Offline");
+      throw new Error();
     }
   } catch (e) {
     statusEl.textContent = "オフライン";
-    statusEl.style.color = "#a00000";
-    playersEl.textContent = "-- / --";
     pingEl.textContent = "-- ms";
     bar.style.width = "0%";
     miniEl.textContent = "🔴";
     return false;
   }
 }
+
 
 async function checkWeb() {
   const start = Date.now();

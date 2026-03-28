@@ -53,13 +53,11 @@ body {
   margin-top: 5px;
 }
 
-
 .bar {
-  width: 100%;
   height: 8px;
-  background: #2ecc71;
+  width: 0%;
   border-radius: 4px;
-  margin-top: 5px;
+  transition: width 0.5s ease;
 }
 
 /* ミニ */
@@ -91,7 +89,7 @@ body {
   <div id="statusText" class="status-box online">⏳ 読み込み中...</div>
 </div>
 
-<!-- node1 -->
+<!-- メイン鯖 -->
 <div class="card">
   <div class="title">マイクラ（sutoserver.net）</div>
 
@@ -102,7 +100,7 @@ body {
   <div class="bar-bg"><div class="bar" id="netBar"></div></div>
 </div>
 
-<!-- xgames -->
+<!-- β -->
 <div class="card">
   <div class="title">マイクラ（sutoserver.xgames.jp）</div>
 
@@ -125,11 +123,14 @@ body {
 
 <script>
 const servers = {
-  net: "node1.swdhst.com:2087",
+  net: "sutoserver.net", // ←必要なら :25565 つける
   x: "sutoserver.xgames.jp"
 };
 
 const WEB_URL = "https://sutoserver.com";
+
+// キャッシュ（消え防止）
+let cache = {};
 
 // マイクラ
 async function checkMC(ip, prefix, miniId) {
@@ -141,22 +142,28 @@ async function checkMC(ip, prefix, miniId) {
     const pingEl = document.getElementById(prefix + "Ping");
 
     if (data.online) {
-      document.getElementById(prefix + "Status").textContent = "オンライン";
-
-      const now = data.players?.online ?? 0;
-      const max = data.players?.max ?? 0;
-
-      document.getElementById(prefix + "Players").textContent = `${now} / ${max}`;
-
-      // Ping安全処理
+      const now = data.players?.online;
+      const max = data.players?.max;
       const pingValue = data.debug?.ping;
-      pingEl.textContent = pingValue !== undefined ? pingValue + " ms" : "-- ms";
 
-      // バー
-      const percent = max > 0 ? (now / max) * 100 : 0;
+      if (now !== undefined && max !== undefined) {
+        cache[prefix] = { now, max };
+      }
+
+      const c = cache[prefix] || { now: 0, max: 0 };
+
+      document.getElementById(prefix + "Status").textContent = "オンライン";
+      document.getElementById(prefix + "Players").textContent = `${c.now} / ${c.max}`;
+
+      // Ping保持
+      if (pingValue !== undefined) {
+        pingEl.textContent = pingValue + " ms";
+      }
+
+      const percent = c.max > 0 ? (c.now / c.max) * 100 : 0;
       bar.style.width = percent + "%";
 
-      // 色（HSL滑らか変化🔥）
+      // 色（滑らか変化）
       const hue = 120 - (percent * 1.2);
       bar.style.background = `hsl(${hue}, 70%, 50%)`;
 
@@ -164,16 +171,14 @@ async function checkMC(ip, prefix, miniId) {
       return true;
 
     } else {
-      document.getElementById(prefix + "Status").textContent = "オフライン";
-      document.getElementById(prefix + "Players").textContent = "-- / --";
-      pingEl.textContent = "-- ms";
-      bar.style.width = "0%";
-
-      document.getElementById(miniId).textContent = "🔴";
+      document.getElementById(prefix + "Status").textContent = "取得失敗（保持中）";
+      document.getElementById(miniId).textContent = "🟡";
       return false;
     }
+
   } catch {
-    document.getElementById(prefix + "Status").textContent = "エラー";
+    document.getElementById(prefix + "Status").textContent = "エラー（保持中）";
+    document.getElementById(miniId).textContent = "🟡";
     return false;
   }
 }
@@ -189,10 +194,10 @@ async function checkWeb() {
     document.getElementById("webPing").textContent = time + " ms";
     document.getElementById("miniWeb").textContent = "🟢";
     return true;
+
   } catch {
-    document.getElementById("webStatus").textContent = "オフライン";
-    document.getElementById("webPing").textContent = "-- ms";
-    document.getElementById("miniWeb").textContent = "🔴";
+    document.getElementById("webStatus").textContent = "取得失敗（保持中）";
+    document.getElementById("miniWeb").textContent = "🟡";
     return false;
   }
 }

@@ -2,101 +2,108 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>すとサーバー Status</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f2f2f2;
-  margin: 0;
-  padding: 20px;
-}
+  body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    background: #f0f2f5;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+  }
 
-.container {
-  max-width: 700px;
-  margin: auto;
-}
+  .container {
+    max-width: 600px;
+    margin: auto;
+  }
 
-.card {
-  background: white;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
+  .card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
 
-.status-box {
-  padding: 8px;
-  border-radius: 8px;
-  font-weight: bold;
-}
+  .status-box {
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.3s;
+  }
 
-.online { background: #e8f7ee; color: #1a7f37; }
-.offline { background: #ffe6e6; color: #a00000; }
+  .online { background: #e8f7ee; color: #1a7f37; }
+  .offline { background: #ffe6e6; color: #a00000; }
 
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
+  .title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    border-left: 4px solid #4a90e2;
+    padding-left: 10px;
+  }
 
-.row {
-  display: flex;
-  justify-content: space-between;
-  margin: 8px 0;
-}
-/* バーの背景（溝） */
-.bar-bg {
-  width: 100%;
-  background: #e0e0e0; /* 薄いグレーで見えるようにする */
-  border-radius: 4px;
-  margin-top: 8px;
-  height: 10px;        /* 高さを少し太くして確実に表示 */
-  overflow: hidden;    /* 中身のバーがはみ出さないように */
-  display: block;      /* 確実にブロック要素として扱う */
-}
+  .row {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    font-size: 15px;
+  }
 
-/* 動くバー本体 */
-.bar {
-  height: 100%;        /* 親の高さ(10px)をいっぱい使う */
-  width: 0%;           /* 初期値 */
-  background: #4caf50; /* デフォルトの色（緑） */
-  transition: width 0.8s ease, background 0.8s ease; /* アニメーションを滑らかに */
-  display: block;
-}
+  /* バーの設定：ここが重要 */
+  .bar-bg {
+    width: 100%;
+    background: #eee;
+    border-radius: 6px;
+    height: 12px;
+    margin-top: 10px;
+    overflow: hidden;
+    position: relative;
+  }
 
+  .bar {
+    height: 100%;
+    width: 0%; /* JSで制御 */
+    background: #4caf50;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.8s;
+  }
 
-
-/* ミニ */
-.mini {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  background: white;
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-size: 14px;
-  box-shadow: 0 0 5px rgba(0,0,0,0.2);
-}
+  /* ミニステータス（右上に固定） */
+  .mini {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 15px;
+    border-radius: 30px;
+    font-size: 13px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+  }
 </style>
 </head>
 
 <body>
 
 <div class="mini">
-  リリース鯖: <span id="miniNet">...</span> |
-  β鯖: <span id="miniX">...</span> |
+  リリース: <span id="miniNet">...</span> |
+  β: <span id="miniX">...</span> |
   Web: <span id="miniWeb">...</span>
 </div>
 
 <div class="container">
 
   <div class="card">
-    <div class="title">すとサーバー ネットワーク</div>
-    <div id="statusText" class="status-box online">⏳ 読み込み中...</div>
+    <div class="title">全体ネットワーク</div>
+    <div id="statusText" class="status-box online">⏳ サーバー情報取得中...</div>
   </div>
 
   <div class="card">
-    <div class="title">マイクラ（sutoserver.net）</div>
+    <div class="title">リリース鯖（sutoserver.net）</div>
     <div class="row"><span>状態</span><span id="netStatus">...</span></div>
     <div class="row"><span>プレイヤー</span><span id="netPlayers">-- / --</span></div>
     <div class="row"><span>Ping</span><span id="netPing">-- ms</span></div>
@@ -104,7 +111,7 @@ body {
   </div>
 
   <div class="card">
-    <div class="title">マイクラ（sutoserver.xgames.jp）</div>
+    <div class="title">β鯖（xgames.jp）</div>
     <div class="row"><span>状態</span><span id="xStatus">...</span></div>
     <div class="row"><span>プレイヤー</span><span id="xPlayers">-- / --</span></div>
     <div class="row"><span>Ping</span><span id="xPing">-- ms</span></div>
@@ -112,7 +119,7 @@ body {
   </div>
 
   <div class="card">
-    <div class="title">Webサイト（sutoserver.com）</div>
+    <div class="title">Webサイト</div>
     <div class="row"><span>状態</span><span id="webStatus">...</span></div>
     <div class="row"><span>応答時間</span><span id="webPing">-- ms</span></div>
   </div>
@@ -120,12 +127,15 @@ body {
 </div>
 
 <script>
+// --- 設定エリア ---
 const servers = {
-  net: "node1.swdhst.com:2087",
+  net: "node1.swdhst.com:2087", // ポート指定
   x: "sutoserver.xgames.jp"
 };
 const WEB_URL = "https://sutoserver.com";
+const UPDATE_INTERVAL = 20000; // 20秒ごとに更新
 
+// --- メインロジック ---
 async function checkMC(ip, prefix, miniId) {
   const bar = document.getElementById(prefix + "Bar");
   const pingEl = document.getElementById(prefix + "Ping");
@@ -135,41 +145,45 @@ async function checkMC(ip, prefix, miniId) {
 
   try {
     const res = await fetch(`https://api.mcsrvstat.us/2/${ip}`);
-    if (!res.ok) throw new Error("Network response was not ok");
+    if (!res.ok) throw new Error("API Error");
     const data = await res.json();
 
-    
     if (data.online) {
-      // ★ここから中身を書き換えます★
-      const now = data.players?.online ?? 0;
-      const max = data.players?.max || 1;
-      const pingValue = data.debug?.ping ?? "--";
-
-      statusEl.textContent = "オンライン";
-      playersEl.textContent = `${now} / ${max}`;
-      pingEl.textContent = pingValue + (pingValue !== "--" ? " ms" : "");
-
-      const percent = (now / max) * 100;
-      bar.style.width = percent + "%";
+      // 数値化の強制
+      const now = Number(data.players?.online) || 0;
+      const max = Number(data.players?.max) || 1;
       
-      // もしバーが消えるなら、ここを backgroundColor に明示的に指定
-      const hue = Math.max(0, 120 - (percent * 1.2));
-      bar.style.backgroundColor = `hsl(${hue}, 70%, 50%)`; 
+      // Pingの取得ロジック（true対策）
+      let pingValue = data.ping; 
+      if (typeof pingValue !== 'number' && data.debug?.ping && typeof data.debug.ping === 'number') {
+        pingValue = data.debug.ping;
+      }
+      const displayPing = (typeof pingValue === 'number') ? pingValue : "--";
+
+      // テキスト表示
+      statusEl.textContent = "オンライン";
+      statusEl.style.color = "#1a7f37";
+      playersEl.textContent = `${now} / ${max}`;
+      pingEl.textContent = `${displayPing} ms`;
+
+      // バーの更新
+      const percent = Math.min(100, Math.max(0, (now / max) * 100));
+      bar.style.width = percent + "%";
+      const hue = Math.max(0, 120 - (percent * 1.2)); // 混雑するほど赤く
+      bar.style.backgroundColor = `hsl(${hue}, 70%, 50%)`;
 
       miniEl.textContent = "🟢";
-    
       return true;
     } else {
-      statusEl.textContent = "オフライン";
-      playersEl.textContent = "-- / --";
-      pingEl.textContent = "-- ms";
-      bar.style.width = "0%";
-      miniEl.textContent = "🔴";
-      return false;
+      throw new Error("Offline");
     }
   } catch (e) {
-    statusEl.textContent = "取得エラー";
-    miniEl.textContent = "🟡";
+    statusEl.textContent = "オフライン";
+    statusEl.style.color = "#a00000";
+    playersEl.textContent = "-- / --";
+    pingEl.textContent = "-- ms";
+    bar.style.width = "0%";
+    miniEl.textContent = "🔴";
     return false;
   }
 }
@@ -177,7 +191,6 @@ async function checkMC(ip, prefix, miniId) {
 async function checkWeb() {
   const start = Date.now();
   try {
-    // Webチェック（CORS回避のためno-corsモード）
     await fetch(WEB_URL, { mode: "no-cors" });
     const time = Date.now() - start;
     document.getElementById("webStatus").textContent = "オンライン";
@@ -185,7 +198,7 @@ async function checkWeb() {
     document.getElementById("miniWeb").textContent = "🟢";
     return true;
   } catch {
-    document.getElementById("webStatus").textContent = "接続エラー";
+    document.getElementById("webStatus").textContent = "エラー";
     document.getElementById("miniWeb").textContent = "🔴";
     return false;
   }
@@ -198,20 +211,18 @@ async function updateAll() {
 
   const statusBox = document.getElementById("statusText");
   if (net || x || web) {
-    statusBox.textContent = "✅ 一部または全部稼働中";
+    statusBox.textContent = "✅ ネットワーク稼働中";
     statusBox.className = "status-box online";
   } else {
-    statusBox.textContent = "❌ 全停止";
+    statusBox.textContent = "❌ 全サーバー停止中";
     statusBox.className = "status-box offline";
   }
 }
 
-// 初回実行
+// 実行
 updateAll();
-// 20秒おきに更新（負荷軽減のため少し間隔を空けました）
-setInterval(updateAll, 20000);
+setInterval(updateAll, UPDATE_INTERVAL);
 </script>
 
 </body>
-
 </html>

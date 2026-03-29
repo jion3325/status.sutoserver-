@@ -39,7 +39,6 @@
 
   .server-name-wrap { display: flex; align-items: center; gap: 12px; }
   
-  /* 画像スタイルのバッジ */
   .status-badge {
     background: var(--online-color);
     color: white;
@@ -49,17 +48,15 @@
     font-weight: 800;
     min-width: 40px;
     text-align: center;
-    box-shadow: 0 2px 5px rgba(46, 204, 113, 0.2);
   }
-  .status-badge.offline { background: var(--offline-color); box-shadow: 0 2px 5px rgba(231, 76, 60, 0.2); }
-  .status-badge.maintenance { background: var(--maint-color); box-shadow: 0 2px 5px rgba(243, 156, 18, 0.2); }
+  .status-badge.offline { background: var(--offline-color); }
+  .status-badge.maintenance { background: var(--maint-color); }
 
   .server-name { font-size: 18px; font-weight: 700; color: #2c3e50; }
   .ping-display { font-size: 12px; color: var(--text-sub); font-family: monospace; }
 
   .info-row { display: flex; justify-content: space-between; font-size: 13px; color: #7f8c8d; margin-bottom: 2px; }
 
-  /* ドットバーのデザイン（画像再現） */
   .uptime-bar {
     display: flex;
     gap: 4px;
@@ -72,7 +69,7 @@
     height: 100%;
     background: #f0f0f0;
     border-radius: 4px;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s ease;
   }
   .dot.on { background: var(--online-color); }
   .dot.off { background: var(--offline-color); }
@@ -85,7 +82,6 @@
     color: #bdc3c7;
     margin-top: 8px;
     font-weight: bold;
-    text-transform: uppercase;
   }
 </style>
 </head>
@@ -126,6 +122,22 @@
     <div class="uptime-bar" id="xDots"></div>
     <div class="time-label"><span>30m ago</span><span>now</span></div>
   </div>
+
+  <div class="card">
+    <div class="title-row">
+      <div class="server-name-wrap">
+        <span id="webBadge" class="status-badge">---</span>
+        <span class="server-name">Webサイト</span>
+      </div>
+      <span id="webPing" class="ping-display">-- ms</span>
+    </div>
+    <div class="info-row">
+      <span>Status: <span id="webStatusText" style="font-weight:bold; color:#333;">---</span></span>
+      <span style="font-size: 11px;">sutoserver.com</span>
+    </div>
+    <div class="uptime-bar" id="webDots"></div>
+    <div class="time-label"><span>30m ago</span><span>now</span></div>
+  </div>
 </div>
 
 <script>
@@ -133,17 +145,16 @@ const servers = {
   net: "node1.swdhst.com:2087",
   x: "sutoserver.xgames.jp"
 };
+const WEB_URL = "https://sutoserver.com";
 
 const MAX_DOTS = 32; 
-let historyData = { net: [], x: [] };
+let historyData = { net: [], x: [], web: [] };
 
 function init() {
-  ['net', 'x'].forEach(id => {
+  ['net', 'x', 'web'].forEach(id => {
     const bar = document.getElementById(id + 'Dots');
     bar.innerHTML = '';
-    // 初期表示でドットを「オンライン」状態で埋める
     historyData[id] = Array(MAX_DOTS).fill("online"); 
-
     for(let i=0; i<MAX_DOTS; i++) {
       const d = document.createElement('div');
       d.className = 'dot on'; 
@@ -153,62 +164,73 @@ function init() {
   updateAll();
 }
 
-async function checkServer(ip, prefix) {
+async function checkMC(ip, prefix) {
   const start = Date.now();
   try {
     const res = await fetch(`https://api.mcsrvstat.us/2/${ip}`);
     const data = await res.json();
     const selfPing = Date.now() - start;
-
-    // MOTDに「メンテ」があればメンテナンスモード発動
     const motd = data.motd?.clean?.join(" ") || "";
     const isMaint = motd.includes("メンテナンス") || motd.includes("Maintenance") || motd.includes("メンテ");
     const isOnline = data.online === true;
 
-    // 履歴を1つ進める
-    let statusState = "online";
-    if (!isOnline) statusState = "offline";
-    if (isMaint) statusState = "maint";
+    updateHistoryAndUI(prefix, isOnline, isMaint, selfPing, isOnline ? `${data.players.online} / ${data.players.max}` : "OFFLINE");
+  } catch (e) { updateHistoryAndUI(prefix, false, false, 0, "ERROR"); }
+}
 
-    historyData[prefix].push(statusState);
-    if(historyData[prefix].length > MAX_DOTS) historyData[prefix].shift();
+async function checkWeb() {
+  const start = Date.now();
+  const prefix = 'web';
+  try {
+    // Webチェック（CORS回避のためno-cors）
+    await fetch(WEB_URL, { mode: "no-cors", cache: "no-store" });
+    const ping = Date.now() - start;
+    updateHistoryAndUI(prefix, true, false, ping, "ONLINE");
+  } catch (e) {
+    updateHistoryAndUI(prefix, false, false, 0, "OFFLINE");
+  }
+}
 
-    // バッジ更新
-    const badge = document.getElementById(prefix + 'Badge');
-    const playerEl = document.getElementById(prefix + 'Players');
-    
-    if (isMaint) {
-      badge.textContent = "メンテ";
-      badge.className = "status-badge maintenance";
-      playerEl.textContent = "CLOSE";
-    } else {
-      badge.textContent = isOnline ? "100%" : "0%";
-      badge.className = isOnline ? "status-badge" : "status-badge offline";
-      playerEl.textContent = isOnline ? `${data.players.online} / ${data.players.max}` : "OFFLINE";
-    }
+function updateHistoryAndUI(prefix, isOnline, isMaint, ping, statusText) {
+  let state = isOnline ? "online" : "offline";
+  if (isMaint) state = "maint";
 
-    // Ping更新
-    document.getElementById(prefix + 'Ping').textContent = (isOnline ? selfPing : "--") + " ms";
+  historyData[prefix].push(state);
+  if(historyData[prefix].length > MAX_DOTS) historyData[prefix].shift();
 
-    // ドット色の再描画
-    const dots = document.getElementById(prefix + 'Dots').children;
-    for(let i=0; i < MAX_DOTS; i++) {
-      dots[i].className = 'dot';
-      const state = historyData[prefix][i];
-      if (state === "online") dots[i].classList.add('on');
-      else if (state === "maint") dots[i].classList.add('maint');
-      else dots[i].classList.add('off');
-    }
-  } catch (e) { console.error(e); }
+  const badge = document.getElementById(prefix + 'Badge');
+  const pingEl = document.getElementById(prefix + 'Ping');
+  const infoEl = document.getElementById(prefix === 'web' ? 'webStatusText' : prefix + 'Players');
+
+  if (isMaint) {
+    badge.textContent = "メンテ";
+    badge.className = "status-badge maintenance";
+  } else {
+    badge.textContent = isOnline ? "100%" : "0%";
+    badge.className = isOnline ? "status-badge" : "status-badge offline";
+  }
+
+  pingEl.textContent = (isOnline ? ping : "--") + " ms";
+  infoEl.textContent = statusText;
+
+  const dots = document.getElementById(prefix + 'Dots').children;
+  for(let i=0; i < MAX_DOTS; i++) {
+    dots[i].className = 'dot';
+    const s = historyData[prefix][i];
+    if (s === "online") dots[i].classList.add('on');
+    else if (s === "maint") dots[i].classList.add('maint');
+    else dots[i].classList.add('off');
+  }
 }
 
 function updateAll() {
-  checkServer(servers.net, 'net');
-  checkServer(servers.x, 'x');
+  checkMC(servers.net, 'net');
+  checkMC(servers.x, 'x');
+  checkWeb();
 }
 
 init();
-setInterval(updateAll, 20000); // 20秒更新
+setInterval(updateAll, 20000); 
 </script>
 </body>
 </html>

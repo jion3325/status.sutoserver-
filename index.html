@@ -4,224 +4,211 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>すとサーバー Status</title>
-
 <style>
-  body {
-    font-family: "Helvetica Neue", Arial, sans-serif;
-    background: #f0f2f5;
-    margin: 0;
-    padding: 20px;
-    color: #333;
+  :root {
+    --bg-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --online-color: #2ecc71;
+    --offline-color: #e74c3c;
+    --maint-color: #f39c12;
+    --text-main: #333;
+    --text-sub: #95a5a6;
   }
 
-  .container {
-    max-width: 600px;
-    margin: auto;
-  }
+  body { font-family: "Helvetica Neue", Arial, sans-serif; background: var(--bg-color); margin: 0; padding: 20px; color: var(--text-main); line-height: 1.6; }
+  .container { max-width: 600px; margin: auto; }
+  
+  .group-title { margin-bottom: 5px; font-size: 13px; color: var(--text-sub); font-weight: bold; letter-spacing: 1px; }
+  .main-title { font-size: 26px; font-weight: 800; margin-bottom: 25px; }
 
   .card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    background: var(--card-bg);
+    padding: 24px;
+    border-radius: 18px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.05);
   }
 
-  .status-box {
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: bold;
-    text-align: center;
-    transition: all 0.3s;
-  }
-
-  .online { background: #e8f7ee; color: #1a7f37; }
-  .offline { background: #ffe6e6; color: #a00000; }
-
-  .title {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    border-left: 4px solid #4a90e2;
-    padding-left: 10px;
-  }
-
-  .row {
+  .title-row {
     display: flex;
     justify-content: space-between;
-    margin: 10px 0;
-    font-size: 15px;
+    align-items: center;
+    margin-bottom: 15px;
   }
 
-  /* バーの設定：ここが重要 */
-  .bar-bg {
-    width: 100%;
-    background: #eee;
-    border-radius: 6px;
-    height: 12px;
-    margin-top: 10px;
-    overflow: hidden;
-    position: relative;
+  .server-name-wrap { display: flex; align-items: center; gap: 12px; }
+  
+  /* 画像スタイルのバッジ */
+  .status-badge {
+    background: var(--online-color);
+    color: white;
+    padding: 4px 14px;
+    border-radius: 25px;
+    font-size: 11px;
+    font-weight: 800;
+    min-width: 40px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(46, 204, 113, 0.2);
+  }
+  .status-badge.offline { background: var(--offline-color); box-shadow: 0 2px 5px rgba(231, 76, 60, 0.2); }
+  .status-badge.maintenance { background: var(--maint-color); box-shadow: 0 2px 5px rgba(243, 156, 18, 0.2); }
+
+  .server-name { font-size: 18px; font-weight: 700; color: #2c3e50; }
+  .ping-display { font-size: 12px; color: var(--text-sub); font-family: monospace; }
+
+  .info-row { display: flex; justify-content: space-between; font-size: 13px; color: #7f8c8d; margin-bottom: 2px; }
+
+  /* ドットバーのデザイン（画像再現） */
+  .uptime-bar {
+    display: flex;
+    gap: 4px;
+    height: 32px;
+    margin-top: 15px;
   }
 
-  .bar {
+  .dot {
+    flex: 1;
     height: 100%;
-    width: 0%; /* JSで制御 */
-    background: #4caf50;
-    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.8s;
+    background: #f0f0f0;
+    border-radius: 4px;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
+  .dot.on { background: var(--online-color); }
+  .dot.off { background: var(--offline-color); }
+  .dot.maint { background: var(--maint-color); }
 
-  /* ミニステータス（右上に固定） */
-  .mini {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 10px 15px;
-    border-radius: 30px;
-    font-size: 13px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    backdrop-filter: blur(4px);
-    z-index: 100;
+  .time-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #bdc3c7;
+    margin-top: 8px;
+    font-weight: bold;
+    text-transform: uppercase;
   }
 </style>
 </head>
-
 <body>
 
-<div class="mini">
-  リリース: <span id="miniNet">...</span> |
-  β: <span id="miniX">...</span> |
-  Web: <span id="miniWeb">...</span>
-</div>
-
 <div class="container">
+  <div class="group-title">SUTO NETWORK INFORMATION</div>
+  <div class="main-title">すとサーバー Status</div>
 
   <div class="card">
-    <div class="title">全体ネットワーク</div>
-    <div id="statusText" class="status-box online">⏳ サーバー情報取得中...</div>
+    <div class="title-row">
+      <div class="server-name-wrap">
+        <span id="netBadge" class="status-badge">---</span>
+        <span class="server-name">リリース鯖</span>
+      </div>
+      <span id="netPing" class="ping-display">-- ms</span>
+    </div>
+    <div class="info-row">
+      <span>Players: <span id="netPlayers" style="font-weight:bold; color:#333;">-- / --</span></span>
+      <span style="font-size: 11px;">node1.swdhst.com:2087</span>
+    </div>
+    <div class="uptime-bar" id="netDots"></div>
+    <div class="time-label"><span>30m ago</span><span>now</span></div>
   </div>
 
   <div class="card">
-    <div class="title">リリース鯖（sutoserver.net）</div>
-    <div class="row"><span>状態</span><span id="netStatus">...</span></div>
-    <div class="row"><span>プレイヤー</span><span id="netPlayers">-- / --</span></div>
-    <div class="row"><span>Ping</span><span id="netPing">-- ms</span></div>
-    <div class="bar-bg"><div class="bar" id="netBar"></div></div>
+    <div class="title-row">
+      <div class="server-name-wrap">
+        <span id="xBadge" class="status-badge">---</span>
+        <span class="server-name">β鯖</span>
+      </div>
+      <span id="xPing" class="ping-display">-- ms</span>
+    </div>
+    <div class="info-row">
+      <span>Players: <span id="xPlayers" style="font-weight:bold; color:#333;">-- / --</span></span>
+      <span style="font-size: 11px;">sutoserver.xgames.jp</span>
+    </div>
+    <div class="uptime-bar" id="xDots"></div>
+    <div class="time-label"><span>30m ago</span><span>now</span></div>
   </div>
-
-  <div class="card">
-    <div class="title">β鯖（xgames.jp）</div>
-    <div class="row"><span>状態</span><span id="xStatus">...</span></div>
-    <div class="row"><span>プレイヤー</span><span id="xPlayers">-- / --</span></div>
-    <div class="row"><span>Ping</span><span id="xPing">-- ms</span></div>
-    <div class="bar-bg"><div class="bar" id="xBar"></div></div>
-  </div>
-
-  <div class="card">
-    <div class="title">Webサイト</div>
-    <div class="row"><span>状態</span><span id="webStatus">...</span></div>
-    <div class="row"><span>応答時間</span><span id="webPing">-- ms</span></div>
-  </div>
-
 </div>
 
 <script>
-// --- 設定エリア ---
 const servers = {
-  net: "node1.swdhst.com:2087", // ポート指定
+  net: "node1.swdhst.com:2087",
   x: "sutoserver.xgames.jp"
 };
-const WEB_URL = "https://sutoserver.com";
-const UPDATE_INTERVAL = 20000; // 20秒ごとに更新
 
-// --- メインロジック ---
-async function checkMC(ip, prefix, miniId) {
-  const bar = document.getElementById(prefix + "Bar");
-  const pingEl = document.getElementById(prefix + "Ping");
-  const statusEl = document.getElementById(prefix + "Status");
-  const playersEl = document.getElementById(prefix + "Players");
-  const miniEl = document.getElementById(miniId);
+const MAX_DOTS = 32; 
+let historyData = { net: [], x: [] };
 
-  // --- 自前Ping計測の開始 ---
-  const startTime = Date.now(); 
+function init() {
+  ['net', 'x'].forEach(id => {
+    const bar = document.getElementById(id + 'Dots');
+    bar.innerHTML = '';
+    // 初期表示でドットを「オンライン」状態で埋める
+    historyData[id] = Array(MAX_DOTS).fill("online"); 
 
-  try {
-    // APIを叩く（ここで時間がかかる分を計測）
-    const res = await fetch(`https://api.mcsrvstat.us/2/${ip}`);
-    const data = await res.json();
-    
-    // APIが返ってきた時間との差分を計算
-    const selfPing = Date.now() - startTime;
-
-    if (data.online) {
-      const now = Number(data.players?.online) || 0;
-      const max = Number(data.players?.max) || 1;
-
-      // APIから数字が来ればそれを使う、来なければ自前で測った数字(selfPing)を使う
-      let displayPing = (typeof data.debug?.ping === 'number') ? data.debug.ping : selfPing;
-
-      statusEl.textContent = "オンライン";
-      playersEl.textContent = `${now} / ${max}`;
-      
-      // ここで確実に「〇〇 ms」と表示させます
-      pingEl.textContent = displayPing + " ms";
-
-      const percent = Math.min(100, (now / max) * 100);
-      bar.style.width = percent + "%";
-      const hue = Math.max(0, 120 - (percent * 1.2));
-      bar.style.backgroundColor = `hsl(${hue}, 70%, 50%)`;
-
-      miniEl.textContent = "🟢";
-      return true;
-    } else {
-      throw new Error();
+    for(let i=0; i<MAX_DOTS; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot on'; 
+      bar.appendChild(d);
     }
-  } catch (e) {
-    statusEl.textContent = "オフライン";
-    pingEl.textContent = "-- ms";
-    bar.style.width = "0%";
-    miniEl.textContent = "🔴";
-    return false;
-  }
+  });
+  updateAll();
 }
 
-
-async function checkWeb() {
+async function checkServer(ip, prefix) {
   const start = Date.now();
   try {
-    await fetch(WEB_URL, { mode: "no-cors" });
-    const time = Date.now() - start;
-    document.getElementById("webStatus").textContent = "オンライン";
-    document.getElementById("webPing").textContent = time + " ms";
-    document.getElementById("miniWeb").textContent = "🟢";
-    return true;
-  } catch {
-    document.getElementById("webStatus").textContent = "エラー";
-    document.getElementById("miniWeb").textContent = "🔴";
-    return false;
-  }
+    const res = await fetch(`https://api.mcsrvstat.us/2/${ip}`);
+    const data = await res.json();
+    const selfPing = Date.now() - start;
+
+    // MOTDに「メンテ」があればメンテナンスモード発動
+    const motd = data.motd?.clean?.join(" ") || "";
+    const isMaint = motd.includes("メンテナンス") || motd.includes("Maintenance") || motd.includes("メンテ");
+    const isOnline = data.online === true;
+
+    // 履歴を1つ進める
+    let statusState = "online";
+    if (!isOnline) statusState = "offline";
+    if (isMaint) statusState = "maint";
+
+    historyData[prefix].push(statusState);
+    if(historyData[prefix].length > MAX_DOTS) historyData[prefix].shift();
+
+    // バッジ更新
+    const badge = document.getElementById(prefix + 'Badge');
+    const playerEl = document.getElementById(prefix + 'Players');
+    
+    if (isMaint) {
+      badge.textContent = "メンテ";
+      badge.className = "status-badge maintenance";
+      playerEl.textContent = "CLOSE";
+    } else {
+      badge.textContent = isOnline ? "100%" : "0%";
+      badge.className = isOnline ? "status-badge" : "status-badge offline";
+      playerEl.textContent = isOnline ? `${data.players.online} / ${data.players.max}` : "OFFLINE";
+    }
+
+    // Ping更新
+    document.getElementById(prefix + 'Ping').textContent = (isOnline ? selfPing : "--") + " ms";
+
+    // ドット色の再描画
+    const dots = document.getElementById(prefix + 'Dots').children;
+    for(let i=0; i < MAX_DOTS; i++) {
+      dots[i].className = 'dot';
+      const state = historyData[prefix][i];
+      if (state === "online") dots[i].classList.add('on');
+      else if (state === "maint") dots[i].classList.add('maint');
+      else dots[i].classList.add('off');
+    }
+  } catch (e) { console.error(e); }
 }
 
-async function updateAll() {
-  const net = await checkMC(servers.net, "net", "miniNet");
-  const x = await checkMC(servers.x, "x", "miniX");
-  const web = await checkWeb();
-
-  const statusBox = document.getElementById("statusText");
-  if (net || x || web) {
-    statusBox.textContent = "✅ ネットワーク稼働中";
-    statusBox.className = "status-box online";
-  } else {
-    statusBox.textContent = "❌ 全サーバー停止中";
-    statusBox.className = "status-box offline";
-  }
+function updateAll() {
+  checkServer(servers.net, 'net');
+  checkServer(servers.x, 'x');
 }
 
-// 実行
-updateAll();
-setInterval(updateAll, UPDATE_INTERVAL);
+init();
+setInterval(updateAll, 20000); // 20秒更新
 </script>
-
 </body>
 </html>

@@ -128,12 +128,31 @@
   </div>
 </div>
 
+    <div class="card">
+    <div class="title-row">
+      <div class="server-name-wrap">
+        <span id="botBadge" class="status-badge">---</span>
+        <span class="server-name">Discord Bot</span>
+      </div>
+      <span id="botPing" class="ping-display">-- ms</span>
+    </div>
+    <div class="info-row">
+      <span>Status: <span id="botStatus" style="font-weight:bold;">---</span></span>
+      <span style="font-size: 10px;">bravo.shironekoserver.com:49180</span>
+    </div>
+    <div class="uptime-bar" id="botDots"></div>
+    <div class="time-label"><span>30m ago</span><span>now</span></div>
+  </div>
+
 <script>
 // 設定：監視したい対象の情報を入力してください
 const targets = {
   node1: { type: 'mc', address: 'node1.swdhst.com:2087' }, // MCサーバーとしてチェック
   panel: { type: 'web', address: 'https://panel.swordhost.net/server/a1a1b61b' }, // URLとしてチェック
   web:   { type: 'web', address: 'https://sutoserver.com' }
+  bot: { type: 'mc', address: 'bravo.shironekoserver.com:49180' }, // Bot項目を追加
+};
+
 };
 
 const MAX_DOTS = 35;

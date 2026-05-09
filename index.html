@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>すとサーバー Status</title>
+<title>sutoserverステータス</title>
 <style>
   :root {
     --bg-color: #f8f9fa;
@@ -18,7 +18,6 @@
   body { font-family: "Helvetica Neue", Arial, sans-serif; background: var(--bg-color); margin: 0; padding: 20px; color: var(--text-main); line-height: 1.6; }
   .container { max-width: 600px; margin: auto; }
   
-  /* カテゴリー見出しのスタイル */
   .category-title { 
     margin: 30px 0 15px 5px; 
     font-size: 18px; 
@@ -126,9 +125,8 @@
     <div class="uptime-bar" id="webDots"></div>
     <div class="time-label"><span>30m ago</span><span>now</span></div>
   </div>
-</div>
 
-    <div class="card">
+  <div class="card">
     <div class="title-row">
       <div class="server-name-wrap">
         <span id="botBadge" class="status-badge">---</span>
@@ -143,14 +141,14 @@
     <div class="uptime-bar" id="botDots"></div>
     <div class="time-label"><span>30m ago</span><span>now</span></div>
   </div>
+</div>
 
 <script>
-// 設定：監視したい対象の情報を入力してください
 const targets = {
-  node1: { type: 'mc', address: 'node1.swdhst.com:2087' }, // MCサーバーとしてチェック
-  panel: { type: 'web', address: 'https://panel.swordhost.net/server/a1a1b61b' }, // URLとしてチェック
-  web:   { type: 'web', address: 'https://sutoserver.com' }
-  bot: { type: 'mc', address: 'bravo.shironekoserver.com:49180' }, // Bot項目を追加
+  node1: { type: 'mc', address: 'node1.swdhst.com:2087' },
+  panel: { type: 'web', address: 'https://panel.swordhost.net/server/a1a1b61b' },
+  web:   { type: 'web', address: 'https://sutoserver.com' }, // ← ここにカンマが必要でした
+  bot:   { type: 'mc',  address: 'bravo.shironekoserver.com:49180' }
 };
 
 const MAX_DOTS = 35;
@@ -160,11 +158,13 @@ function init() {
   Object.keys(targets).forEach(id => {
     historyData[id] = Array(MAX_DOTS).fill("online");
     const bar = document.getElementById(id + 'Dots');
-    bar.innerHTML = '';
-    for(let i=0; i<MAX_DOTS; i++) {
-      const d = document.createElement('div');
-      d.className = 'dot on';
-      bar.appendChild(d);
+    if(bar) {
+      bar.innerHTML = '';
+      for(let i=0; i<MAX_DOTS; i++) {
+        const d = document.createElement('div');
+        d.className = 'dot on';
+        bar.appendChild(d);
+      }
     }
   });
   updateAll();
@@ -182,6 +182,7 @@ async function updateAll() {
       } catch { updateUI(id, false, false, 0, "ERROR"); }
     } else {
       try {
+        // mode: 'no-cors' はレスポンスの中身は見れませんが、接続成否の判定には使えます
         await fetch(target.address, { mode: 'no-cors', cache: 'no-store' });
         const ping = Date.now() - start;
         updateUI(id, true, false, ping, "ONLINE");
@@ -194,26 +195,32 @@ function updateUI(id, isOnline, isMaint, ping, statusText) {
   let state = isOnline ? "online" : "offline";
   if (isMaint) state = "maint";
 
+  if (!historyData[id]) historyData[id] = [];
   historyData[id].push(state);
   if(historyData[id].length > MAX_DOTS) historyData[id].shift();
 
   const badge = document.getElementById(id + 'Badge');
   const pingEl = document.getElementById(id + 'Ping');
   const statusEl = document.getElementById(id + 'Status');
-  const dots = document.getElementById(id + 'Dots').children;
+  const bar = document.getElementById(id + 'Dots');
 
-  badge.textContent = isOnline ? "100%" : "0%";
-  badge.className = isOnline ? "status-badge" : "status-badge offline";
-  pingEl.textContent = (isOnline ? ping : "--") + " ms";
-  statusEl.textContent = statusText;
+  if(badge) {
+    badge.textContent = isOnline ? "100%" : "0%";
+    badge.className = isOnline ? "status-badge" : "status-badge offline";
+  }
+  if(pingEl) pingEl.textContent = (isOnline ? ping : "--") + " ms";
+  if(statusEl) statusEl.textContent = statusText;
 
-  for(let i=0; i < MAX_DOTS; i++) {
-    dots[i].className = 'dot ' + (historyData[id][i] === "online" ? "on" : (historyData[id][i] === "maint" ? "maint" : "off"));
+  if(bar) {
+    const dots = bar.children;
+    for(let i=0; i < dots.length; i++) {
+      dots[i].className = 'dot ' + (historyData[id][i] === "online" ? "on" : (historyData[id][i] === "maint" ? "maint" : "off"));
+    }
   }
 }
 
 init();
-setInterval(updateAll, 30000); // 30秒ごとに更新
+setInterval(updateAll, 30000); 
 </script>
 </body>
 </html>

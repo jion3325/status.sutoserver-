@@ -72,7 +72,7 @@
 <body>
 
 <div class="container">
-  <div class="main-title">SwordHostステータス</div>
+  <div class="main-title">sutoserverステータス</div>
   <div class="sub-header">SERVICE OPERATIONAL STATUS</div>
 
   <div class="category-title">ホストサービス</div>
@@ -81,13 +81,13 @@
     <div class="title-row">
       <div class="server-name-wrap">
         <span id="node1Badge" class="status-badge">---</span>
-        <span class="server-name">Node1</span>
+        <span class="server-name">リリース鯖</span>
       </div>
       <span id="node1Ping" class="ping-display">-- ms</span>
     </div>
     <div class="info-row">
       <span>Load: <span id="node1Status" style="font-weight:bold;">---</span></span>
-      <span style="font-size: 10px;">node1.swdhst.com</span>
+      <span style="font-size: 10px;">sutoserver.net</span>
     </div>
     <div class="uptime-bar" id="node1Dots"></div>
     <div class="time-label"><span>30m ago</span><span>now</span></div>
@@ -105,7 +105,7 @@
     </div>
     <div class="info-row">
       <span>Status: <span id="panelStatus" style="font-weight:bold;">---</span></span>
-      <span style="font-size: 10px;">panel.swdhst.net</span>
+      <span style="font-size: 10px;">秘密</span>
     </div>
     <div class="uptime-bar" id="panelDots"></div>
     <div class="time-label"><span>30m ago</span><span>now</span></div>
@@ -132,7 +132,7 @@
 // 設定：監視したい対象の情報を入力してください
 const targets = {
   node1: { type: 'mc', address: 'node1.swdhst.com:2087' }, // MCサーバーとしてチェック
-  panel: { type: 'web', address: 'https://panel.swdhst.net' }, // URLとしてチェック
+  panel: { type: 'web', address: 'https://panel.swordhost.net/server/a1a1b61b' }, // URLとしてチェック
   web:   { type: 'web', address: 'https://sutoserver.com' }
 };
 

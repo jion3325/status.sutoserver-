@@ -18,108 +18,96 @@
   body { font-family: "Helvetica Neue", Arial, sans-serif; background: var(--bg-color); margin: 0; padding: 20px; color: var(--text-main); line-height: 1.6; }
   .container { max-width: 600px; margin: auto; }
   
-  .group-title { margin-bottom: 5px; font-size: 13px; color: var(--text-sub); font-weight: bold; letter-spacing: 1px; }
-  .main-title { font-size: 26px; font-weight: 800; margin-bottom: 25px; }
+  /* カテゴリー見出しのスタイル */
+  .category-title { 
+    margin: 30px 0 15px 5px; 
+    font-size: 18px; 
+    font-weight: 800; 
+    color: var(--text-main);
+    border-left: 4px solid #3498db;
+    padding-left: 10px;
+  }
+
+  .main-title { font-size: 26px; font-weight: 800; margin-bottom: 10px; }
+  .sub-header { font-size: 13px; color: var(--text-sub); margin-bottom: 25px; font-weight: bold; }
 
   .card {
     background: var(--card-bg);
-    padding: 24px;
+    padding: 20px;
     border-radius: 18px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.03);
     border: 1px solid rgba(0,0,0,0.05);
   }
 
-  .title-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-
-  .server-name-wrap { display: flex; align-items: center; gap: 12px; }
+  .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .server-name-wrap { display: flex; align-items: center; gap: 10px; }
   
   .status-badge {
     background: var(--online-color);
     color: white;
-    padding: 4px 14px;
+    padding: 3px 12px;
     border-radius: 25px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
-    min-width: 40px;
+    min-width: 35px;
     text-align: center;
   }
   .status-badge.offline { background: var(--offline-color); }
   .status-badge.maintenance { background: var(--maint-color); }
 
-  .server-name { font-size: 18px; font-weight: 700; color: #2c3e50; }
-  .ping-display { font-size: 12px; color: var(--text-sub); font-family: monospace; }
+  .server-name { font-size: 16px; font-weight: 700; color: #2c3e50; }
+  .ping-display { font-size: 11px; color: var(--text-sub); font-family: monospace; }
+  .info-row { display: flex; justify-content: space-between; font-size: 12px; color: #7f8c8d; }
 
-  .info-row { display: flex; justify-content: space-between; font-size: 13px; color: #7f8c8d; margin-bottom: 2px; }
-
-  .uptime-bar {
-    display: flex;
-    gap: 4px;
-    height: 32px;
-    margin-top: 15px;
-  }
-
-  .dot {
-    flex: 1;
-    height: 100%;
-    background: #f0f0f0;
-    border-radius: 4px;
-    transition: all 0.5s ease;
-  }
+  .uptime-bar { display: flex; gap: 3px; height: 24px; margin-top: 12px; }
+  .dot { flex: 1; height: 100%; background: #f0f0f0; border-radius: 3px; transition: all 0.3s ease; }
   .dot.on { background: var(--online-color); }
   .dot.off { background: var(--offline-color); }
   .dot.maint { background: var(--maint-color); }
 
-  .time-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 10px;
-    color: #bdc3c7;
-    margin-top: 8px;
-    font-weight: bold;
-  }
+  .time-label { display: flex; justify-content: space-between; font-size: 9px; color: #bdc3c7; margin-top: 6px; font-weight: bold; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="group-title">SUTO NETWORK INFORMATION</div>
-  <div class="main-title">すとサーバー Status</div>
+  <div class="main-title">SwordHostステータス</div>
+  <div class="sub-header">SERVICE OPERATIONAL STATUS</div>
 
+  <div class="category-title">ホストサービス</div>
+  
   <div class="card">
     <div class="title-row">
       <div class="server-name-wrap">
-        <span id="netBadge" class="status-badge">---</span>
-        <span class="server-name">リリース鯖</span>
+        <span id="node1Badge" class="status-badge">---</span>
+        <span class="server-name">Node1</span>
       </div>
-      <span id="netPing" class="ping-display">-- ms</span>
+      <span id="node1Ping" class="ping-display">-- ms</span>
     </div>
     <div class="info-row">
-      <span>Players: <span id="netPlayers" style="font-weight:bold; color:#333;">-- / --</span></span>
-      <span style="font-size: 11px;">sutoserver.net</span>
+      <span>Load: <span id="node1Status" style="font-weight:bold;">---</span></span>
+      <span style="font-size: 10px;">node1.swdhst.com</span>
     </div>
-    <div class="uptime-bar" id="netDots"></div>
+    <div class="uptime-bar" id="node1Dots"></div>
     <div class="time-label"><span>30m ago</span><span>now</span></div>
   </div>
 
+  <div class="category-title">Webサービス</div>
+
   <div class="card">
     <div class="title-row">
       <div class="server-name-wrap">
-        <span id="xBadge" class="status-badge">---</span>
-        <span class="server-name">β鯖</span>
+        <span id="panelBadge" class="status-badge">---</span>
+        <span class="server-name">管理パネル</span>
       </div>
-      <span id="xPing" class="ping-display">-- ms</span>
+      <span id="panelPing" class="ping-display">-- ms</span>
     </div>
     <div class="info-row">
-      <span>Players: <span id="xPlayers" style="font-weight:bold; color:#333;">-- / --</span></span>
-      <span style="font-size: 11px;">sutoserver.xgames.jp</span>
+      <span>Status: <span id="panelStatus" style="font-weight:bold;">---</span></span>
+      <span style="font-size: 10px;">panel.swdhst.net</span>
     </div>
-    <div class="uptime-bar" id="xDots"></div>
+    <div class="uptime-bar" id="panelDots"></div>
     <div class="time-label"><span>30m ago</span><span>now</span></div>
   </div>
 
@@ -127,13 +115,13 @@
     <div class="title-row">
       <div class="server-name-wrap">
         <span id="webBadge" class="status-badge">---</span>
-        <span class="server-name">Webサイト</span>
+        <span class="server-name">ホームページ</span>
       </div>
       <span id="webPing" class="ping-display">-- ms</span>
     </div>
     <div class="info-row">
-      <span>Status: <span id="webStatusText" style="font-weight:bold; color:#333;">---</span></span>
-      <span style="font-size: 11px;">sutoserver.com</span>
+      <span>Status: <span id="webStatus" style="font-weight:bold;">---</span></span>
+      <span style="font-size: 10px;">sutoserver.com</span>
     </div>
     <div class="uptime-bar" id="webDots"></div>
     <div class="time-label"><span>30m ago</span><span>now</span></div>
@@ -141,96 +129,74 @@
 </div>
 
 <script>
-const servers = {
-  net: "node1.swdhst.com:2087",
-  x: "sutoserver.xgames.jp"
+// 設定：監視したい対象の情報を入力してください
+const targets = {
+  node1: { type: 'mc', address: 'node1.swdhst.com:2087' }, // MCサーバーとしてチェック
+  panel: { type: 'web', address: 'https://panel.swdhst.net' }, // URLとしてチェック
+  web:   { type: 'web', address: 'https://sutoserver.com' }
 };
-const WEB_URL = "https://sutoserver.com";
 
-const MAX_DOTS = 32; 
-let historyData = { net: [], x: [], web: [] };
+const MAX_DOTS = 35;
+let historyData = {};
 
 function init() {
-  ['net', 'x', 'web'].forEach(id => {
+  Object.keys(targets).forEach(id => {
+    historyData[id] = Array(MAX_DOTS).fill("online");
     const bar = document.getElementById(id + 'Dots');
     bar.innerHTML = '';
-    historyData[id] = Array(MAX_DOTS).fill("online"); 
     for(let i=0; i<MAX_DOTS; i++) {
       const d = document.createElement('div');
-      d.className = 'dot on'; 
+      d.className = 'dot on';
       bar.appendChild(d);
     }
   });
   updateAll();
 }
 
-async function checkMC(ip, prefix) {
-  const start = Date.now();
-  try {
-    const res = await fetch(`https://api.mcsrvstat.us/2/${ip}`);
-    const data = await res.json();
-    const selfPing = Date.now() - start;
-    const motd = data.motd?.clean?.join(" ") || "";
-    const isMaint = motd.includes("メンテナンス") || motd.includes("Maintenance") || motd.includes("メンテ");
-    const isOnline = data.online === true;
-
-    updateHistoryAndUI(prefix, isOnline, isMaint, selfPing, isOnline ? `${data.players.online} / ${data.players.max}` : "OFFLINE");
-  } catch (e) { updateHistoryAndUI(prefix, false, false, 0, "ERROR"); }
-}
-
-async function checkWeb() {
-  const start = Date.now();
-  const prefix = 'web';
-  try {
-    // Webチェック（CORS回避のためno-cors）
-    await fetch(WEB_URL, { mode: "no-cors", cache: "no-store" });
-    const ping = Date.now() - start;
-    updateHistoryAndUI(prefix, true, false, ping, "ONLINE");
-  } catch (e) {
-    updateHistoryAndUI(prefix, false, false, 0, "OFFLINE");
+async function updateAll() {
+  for (const [id, target] of Object.entries(targets)) {
+    const start = Date.now();
+    if (target.type === 'mc') {
+      try {
+        const res = await fetch(`https://api.mcsrvstat.us/2/${target.address}`);
+        const data = await res.json();
+        const ping = Date.now() - start;
+        updateUI(id, data.online, false, ping, data.online ? `${data.players.online} Players` : "OFFLINE");
+      } catch { updateUI(id, false, false, 0, "ERROR"); }
+    } else {
+      try {
+        await fetch(target.address, { mode: 'no-cors', cache: 'no-store' });
+        const ping = Date.now() - start;
+        updateUI(id, true, false, ping, "ONLINE");
+      } catch { updateUI(id, false, false, 0, "OFFLINE"); }
+    }
   }
 }
 
-function updateHistoryAndUI(prefix, isOnline, isMaint, ping, statusText) {
+function updateUI(id, isOnline, isMaint, ping, statusText) {
   let state = isOnline ? "online" : "offline";
   if (isMaint) state = "maint";
 
-  historyData[prefix].push(state);
-  if(historyData[prefix].length > MAX_DOTS) historyData[prefix].shift();
+  historyData[id].push(state);
+  if(historyData[id].length > MAX_DOTS) historyData[id].shift();
 
-  const badge = document.getElementById(prefix + 'Badge');
-  const pingEl = document.getElementById(prefix + 'Ping');
-  const infoEl = document.getElementById(prefix === 'web' ? 'webStatusText' : prefix + 'Players');
+  const badge = document.getElementById(id + 'Badge');
+  const pingEl = document.getElementById(id + 'Ping');
+  const statusEl = document.getElementById(id + 'Status');
+  const dots = document.getElementById(id + 'Dots').children;
 
-  if (isMaint) {
-    badge.textContent = "メンテ";
-    badge.className = "status-badge maintenance";
-  } else {
-    badge.textContent = isOnline ? "100%" : "0%";
-    badge.className = isOnline ? "status-badge" : "status-badge offline";
-  }
-
+  badge.textContent = isOnline ? "100%" : "0%";
+  badge.className = isOnline ? "status-badge" : "status-badge offline";
   pingEl.textContent = (isOnline ? ping : "--") + " ms";
-  infoEl.textContent = statusText;
+  statusEl.textContent = statusText;
 
-  const dots = document.getElementById(prefix + 'Dots').children;
   for(let i=0; i < MAX_DOTS; i++) {
-    dots[i].className = 'dot';
-    const s = historyData[prefix][i];
-    if (s === "online") dots[i].classList.add('on');
-    else if (s === "maint") dots[i].classList.add('maint');
-    else dots[i].classList.add('off');
+    dots[i].className = 'dot ' + (historyData[id][i] === "online" ? "on" : (historyData[id][i] === "maint" ? "maint" : "off"));
   }
-}
-
-function updateAll() {
-  checkMC(servers.net, 'net');
-  checkMC(servers.x, 'x');
-  checkWeb();
 }
 
 init();
-setInterval(updateAll, 20000); 
+setInterval(updateAll, 30000); // 30秒ごとに更新
 </script>
 </body>
 </html>
